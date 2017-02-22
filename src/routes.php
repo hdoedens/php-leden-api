@@ -1,13 +1,22 @@
 <?php
 // Routes
 
-$app->get('/tickets', function ($request, $response, $args) {
-    $this->logger->info("Ticket list");
+$app->get('/leden', function ($request, $response, $args) {
+    $this->logger->info("Leden lijst");
+
+    $stmt = $this->db->prepare('SELECT * FROM leden WHERE naam = ?');
+    if ($stmt->execute(array($_GET['naam']))) {
+        while ($row = $stmt->fetch()) {
+            print_r($row);
+        }
+    }
+
     // $mapper = new TicketMapper($this->db);
     // $tickets = $mapper->getTickets();
 
     // $response->getBody()->write(var_export($tickets, true));
     // return $response;
+
     return $this->renderer->render($response, 'index.phtml', $args);
 });
 
