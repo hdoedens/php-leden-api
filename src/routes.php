@@ -6,12 +6,15 @@ use SoapClientCurl\SoapClientRequest;
 $app->get('/leden', function ($request, $response, $args) {
     $this->logger->info("Leden lijst");
 
+    $data = "Geen data gevonden";
+
     $stmt = $this->db->prepare('SELECT * FROM leden');
     if ($stmt->execute()) {
         while ($row = $stmt->fetch()) {
             $data = $row;
         }
     }
+    
     return $response->withJSON($data);
 });
 
@@ -21,8 +24,15 @@ $app->get('/reload', function ($request, $response, $args) {
     purgeLedenTable($this->db);
 
     $scipioLeden = getLeden();
+    // $json = json_encode($scipioLeden);
+    // $array = json_decode($json,TRUE);
+    $xml=simplexml_load_string($scipioLeden); # or die("Error: Cannot create object");
+    
+    $response->getBody()->write($xml);
+    
+    return $response;
 
-    return $response->withJSON(array('status'=> $scipioLeden));
+    // return $array;
 });
 
 function getLeden() {
