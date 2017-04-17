@@ -24,13 +24,17 @@ $app->get('/reload', function ($request, $response, $args) {
     purgeLedenTable($this->db);
 
     $scipioLeden = getLeden();
-    // $json = json_encode($scipioLeden);
-    // $array = json_decode($json,TRUE);
-    $xml=simplexml_load_string($scipioLeden); # or die("Error: Cannot create object");
+    $json = json_encode($scipioLeden);
+    $array = json_decode($json,TRUE);
+    // $xml=simplexml_load_string($array) or die("Error: Cannot create object");
     
-    $response->getBody()->write($xml);
+    // $response->getBody()->write($array);
     
-    return $response;
+    $arr = xml2array(new SimpleXMLElement($array));
+
+    print_r($arr);
+
+    return "glad it all worked out";
 
     // return $array;
 });
@@ -55,7 +59,8 @@ function getLeden() {
     $headers = array('Content-Type: text/xml; charset=utf-8', 'Content-Length: '.strlen($body));
 
     $result = SoapClientRequest::send($url, $headers, $body);
-    return $result->body;
+    // file_put_contents ( "../target/scipioLeden.xml" , getXml($result->body) );
+    return getXml($result->body);
 
     // return $body;
 }
@@ -63,4 +68,33 @@ function getLeden() {
 function purgeLedenTable($db) {
     $stmt = $db->prepare('DELETE FROM leden');
     $stmt->execute();
+}
+
+function getXml($string) {
+    return strtr(
+        $string, 
+        array(
+            "&lt;" => "<",
+            "&gt;" => ">",
+            "&quot;" => '"',
+            "&apos;" => "'",
+            "&amp;" => "&",
+        )
+    );
+}
+
+function xml2array($xml){
+    $arr = array();
+    foreach ($xml as $element)
+    {
+        $tag = $element->getName();
+        $e = get_object_vars($element);
+        if (!empty($e))
+        {
+            $arr[$tag][] = $element instanceof SimpleXMLElement ? xml2array($element) : $e;
+        } else {
+            $arr[$tag] = trim($element);
+        }
+    }
+    return $arr;
 }
