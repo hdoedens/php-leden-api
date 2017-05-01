@@ -21,22 +21,33 @@ $app->get('/leden', function ($request, $response, $args) {
 $app->get('/reload', function ($request, $response, $args) {
     $this->logger->info("Start purge and reload scipio leden");
 
-    purgeLedenTable($this->db);
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
 
+    purgeLedenTable($this->db);
+    
     $scipioLeden = getLeden();
     $json = json_encode($scipioLeden);
     $array = json_decode($json,TRUE);
-    // $xml=simplexml_load_string($array) or die("Error: Cannot create object");
+    $clean_xml = str_ireplace(['SOAP-ENV:', 'SOAP:', 'xmlns="https://www.scipio-online.nl/ScipioConnect"'], '', $array);
+
+    $doc = new DOMDocument();
+    $doc->loadXML($clean_xml);
+
+    $xpath = new DOMXPath($doc);
+
+    // We starts from the root element
+    $query = '//Envelope/Body/GetLedenOverzichtResponse/GetLedenOverzichtResult/root/persoon';
+
+    $entries = $xpath->query($query);
+
+    foreach ($entries as $entry) {
+        echo "Found {$entry->nodeValue}<br />";
+    }
     
-    // $response->getBody()->write($array);
-    
-    $arr = xml2array(new SimpleXMLElement($array));
+    // return "glad it all worked out";
 
-    print_r($arr);
-
-    return "glad it all worked out";
-
-    // return $array;
 });
 
 function getLeden() {
