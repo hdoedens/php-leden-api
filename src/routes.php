@@ -43,7 +43,17 @@ $app->get('/reload', function ($request, $response, $args) {
     $entries = $xpath->query($query);
 
     foreach ($entries as $entry) {
-        echo "Found {$entry->nodeValue}<br />";
+        $detailList = $entry->getElementsByTagName('*');
+        $sql = "INSERT INTO leden (naam, adres, geboren, geslacht)
+                VALUES ('{$detailList[2]->nodeValue}', '{$detailList[11]->nodeValue}', '{$detailList[5]->nodeValue}', '{$detailList[4]->nodeValue}')";
+
+        try {
+            $this->db->exec($sql);
+            echo "New record for {$detailList[2]->nodeValue} created successfully";
+        } catch (PDOException $e) {
+            echo $sql . "<br>" . $e->getMessage();
+        }
+
     }
     
     // return "glad it all worked out";
