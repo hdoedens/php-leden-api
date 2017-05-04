@@ -18,6 +18,30 @@ $app->get('/leden', function ($request, $response, $args) {
     return $response->withJSON($data);
 });
 
+$app->get('/jarigen', function ($request, $response, $args) {
+    $this->logger->info("Leden lijst");
+
+    $data = [];
+
+    $stmt = $this->db->prepare("
+        SELECT EXTRACT(YEAR FROM NOW()) - EXTRACT(YEAR FROM geboren) AS leeftijd
+        ,      naam
+        ,      CONCAT(EXTRACT(DAY FROM geboren), ' ', MONTHNAME(geboren)) AS dag
+        ,      CONCAT(LPAD(EXTRACT(MONTH FROM geboren), 2, '0'), LPAD(EXTRACT(DAY FROM geboren), 2, '0')) AS orderfield
+        FROM `leden` 
+        WHERE
+        geboren + INTERVAL EXTRACT(YEAR FROM NOW()) - EXTRACT(YEAR FROM geboren) YEAR
+        BETWEEN CURRENT_DATE() - INTERVAL 0 DAY AND CURRENT_DATE() + INTERVAL 14 DAY
+        ORDER BY orderfield");
+    if ($stmt->execute()) {
+        while ($row = $stmt->fetch()) {
+            $data[] = $row;
+        }
+    }
+    
+    return $response->withJSON($data);
+});
+
 $app->get('/reload', function ($request, $response, $args) {
     $this->logger->info("Start purge and reload scipio leden");
 
