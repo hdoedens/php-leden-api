@@ -68,14 +68,27 @@ $app->get('/reload', function ($request, $response, $args) {
 
     foreach ($entries as $entry) {
         $detailList = $entry->getElementsByTagName('*');
+
+        // for ($i=0; $i < $detailList->length; $i++) { 
+        //     print($detailList->item($i)->tagName . ' - ' . $detailList->item($i)->nodeValue . '<br />');
+        // }
+
+        $naam = $entry->getElementsByTagName('aanschrijfnaam')[0]->nodeValue;
+        $adres = $entry->getElementsByTagName('adres')[0]->nodeValue;
+        $geboren = $entry->getElementsByTagName('gebdatum')[0]->nodeValue;
+        $geslacht = $entry->getElementsByTagName('geslacht')[0]->nodeValue;
+
         $sql = "INSERT INTO leden (naam, adres, geboren, geslacht)
-                VALUES ('{$detailList[2]->nodeValue}', '{$detailList[11]->nodeValue}', '{$detailList[5]->nodeValue}', '{$detailList[4]->nodeValue}')";
+                VALUES ('{$naam}', 
+                        '{$adres}', 
+                        '{$geboren}', 
+                        '{$geslacht}')";
 
         try {
             $this->db->exec($sql);
-            echo "New record for {$detailList[2]->nodeValue} created successfully";
+            echo "<p>New record for {$naam} created successfully</p>";
         } catch (PDOException $e) {
-            echo $sql . "<br>" . $e->getMessage();
+            echo '<p>' . $sql . "<br>" . $e->getMessage() . '</p>';
         }
 
     }
