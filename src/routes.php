@@ -12,6 +12,7 @@ $app->get('/leden', function ($request, $response, $args) {
     if ($stmt->execute()) {
         while ($row = $stmt->fetch()) {
             $data = $row;
+            break;
         }
     }
     
@@ -69,14 +70,29 @@ $app->get('/reload', function ($request, $response, $args) {
     foreach ($entries as $entry) {
         $detailList = $entry->getElementsByTagName('*');
 
-        // for ($i=0; $i < $detailList->length; $i++) { 
-        //     print($detailList->item($i)->tagName . ' - ' . $detailList->item($i)->nodeValue . '<br />');
-        // }
-
         $naam = $entry->getElementsByTagName('aanschrijfnaam')[0]->nodeValue;
         $adres = $entry->getElementsByTagName('adres')[0]->nodeValue;
         $geboren = $entry->getElementsByTagName('gebdatum')[0]->nodeValue;
+        if($geboren == "") {
+            $geboren = "19700101";
+        }
         $geslacht = $entry->getElementsByTagName('geslacht')[0]->nodeValue;
+        $status = $entry->getElementsByTagName('status')[0]->nodeValue;
+
+        if( $status == "uitgeschreven" || 
+            // $status == "actief" || 
+            $status == "vertrokken" || 
+            $status == "onttrokken" || 
+            $status == "overleden" || 
+            $status == "passief" || 
+            $status == "uit register") {
+            continue;
+        }
+
+        // for ($i=0; $i < $detailList->length; $i++) { 
+        //     print($detailList->item($i)->tagName . ' - ' . $detailList->item($i)->nodeValue . '<br />');
+        // }
+        // return;
 
         $sql = "INSERT INTO leden (naam, adres, geboren, geslacht)
                 VALUES ('{$naam}', 
